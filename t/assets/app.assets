@@ -1,0 +1,7 @@
+#!/usr/bin/env perl
+
+sub {
+    my ( $assets ) = @_;
+
+    warn "Sdsdsdsds";
+};
