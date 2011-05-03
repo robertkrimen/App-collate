@@ -34,6 +34,15 @@ sub assets {
     }
 }
 
+sub rename {
+    my $self = shift;
+    my ( $from, $to ) = @_;
+
+    my $assets = $self->assets( $from );
+    delete $self->_assets->{ $from };
+    $self->assets( $to => $assets );
+}
+
 no Any::Moose;
 
 sub has {

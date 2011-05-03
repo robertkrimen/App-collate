@@ -8,6 +8,7 @@ use Getopt::Usaginator <<_END_;
     Usage: collate [--file <file>]
 
 _END_
+use Path::Class();
 
 use Any::Moose;
 
@@ -25,20 +26,7 @@ sub run {
         usage "*** Invalid file ($file): Not a file or does not exist";
     }
 
-    my $code = do $file;
-    usage "*** Invalid file ($file): Unable to read/execute: $!" if $!;
-    usage "*** Invalid file ($file): Unable to execute: $@" if $@;
-    usage "*** Invalid return value ($code) from file ($file): Should be a subroutine (CODE reference)" unless ref $code eq 'CODE';
-
-    my $assets = App::collate::AppAPI->new( app => $self );
-
-    $code->( $assets );
+    my $script = App::collate::Script->new( file => Path::Class::file( $file ) );
+    $script->_run;
 }
 
-package App::collate::AppAPI;
-
-use Any::Moose;
-
-has app => qw/ is ro required 1 isa App::collate::App /;
-
-1;

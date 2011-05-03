@@ -33,16 +33,45 @@ _END_
     );
 }
 
+# Typical client (condor)
+
 sub {
 
     my ( $assets ) = @_;
 
-    $assets->declare( 'condor' =>
-        import => <<_END_,
+    $assets->import( <<_END_ );
 jquery
 jquery-ui
 _END_
-        include => 
+
+    $assets->include( <<_END_ );
+assets/condor.js
+assets/condor.css
+_END_
+
+    $assets->write( 'assets' );
+    $assets->write( 'assets', compress => 1 );
+}
+
+# Typical library (DOMite)
+
+sub {
+
+    my ( $assets ) = @_;
+
+    $assets->name( 'DOMite' );
+
+    $assets->import( <<_END_ );
+underscore
+jquery
+_END_
+
+    $assets->include( <<_END_ );
+assets/DOMite.js
+_END_
+
+    $assets->write( 'assets' );
+    $assets->write( 'assets', compress => 1 );
 }
 
 # Repository (repository.assets)
