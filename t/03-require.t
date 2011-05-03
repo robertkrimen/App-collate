@@ -31,6 +31,4 @@ is( $manifest[ 3 ]->source, 't/assets/jquery-ui/base/2.gif' );
 ok( $manifest[ 3 ]->attachment );
 is( $manifest[ 4 ]->source, 't/assets/jquery-ui/jquery-ui.js' );
 
-
-
 done_testing;
