@@ -24,15 +24,8 @@ sub assets {
 
     my $assets = App::collate::Assets->new( base => $options{ base } );
 
-    _each( $options{ manifest }, sub {
-        my $asset = shift;
-        $assets->manifest->add( $asset );
-    } );
-
-    _each( $options{ attach }, sub {
-        my $asset = shift;
-        $assets->attach_manifest->add( $asset );
-    } );
+    $assets->include( $options{ include } );
+    $assets->attach( $options{ attach } );
 
     return $assets;
 }

@@ -11,8 +11,9 @@ my ( $assets, $require_assets, $manifest, @manifest, $tmp );
 
 $tmp = tempdir;
 
-$assets = App::collate->assets( base => 't/assets',
-    manifest => <<_END_,
+$assets = App::collate->assets(
+    base => 't/assets',
+    include => <<_END_,
 jquery-ui/jquery-ui.js
 jquery-ui/base/jquery-ui.css
 _END_

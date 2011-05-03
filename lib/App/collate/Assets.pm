@@ -23,6 +23,26 @@ has attach_manifest => qw/ is ro lazy 1 /, default => sub {
     return App::collate::Assets::AttachManifest->new;
 };
 
+sub include {
+    my $self = shift;
+    my $include = shift;
+
+    App::collate::_each( $include, sub {
+        my $asset = shift;
+        $self->manifest->add( $asset );
+    } );
+}
+
+sub attach {
+    my $self = shift;
+    my $attach = shift;
+
+    App::collate::_each( $attach, sub {
+        my $asset = shift;
+        $self->attach_manifest->add( $asset );
+    } );
+}
+
 sub write_manifest {
     my $self = shift;
     my %options =  @_;
