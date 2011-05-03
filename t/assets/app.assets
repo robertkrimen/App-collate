@@ -3,5 +3,5 @@
 sub {
     my ( $assets ) = @_;
 
-    warn "Sdsdsdsds";
+    warn "Hello, World.\n";
 };
