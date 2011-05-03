@@ -11,8 +11,12 @@ use Any::Moose;
 
 has base => qw/ is ro required 1 isa Str /;
 
-has [qw/ manifest require_manifest /] => qw/ is ro lazy 1 /, default => sub {
+has manifest => qw/ is ro lazy 1 /, default => sub {
     return App::assetize::Assets::Manifest->new;
+};
+
+has require_manifest => qw/ is ro lazy 1 /, default => sub {
+    return App::assetize::Assets::RequireManifest->new;
 };
 
 has attach_manifest => qw/ is ro lazy 1 /, default => sub {
@@ -33,6 +37,18 @@ sub write_manifest {
     die "*** Invalid base (not a directory or does not exist)" unless -d $base;
 
     my $manifest = App::assetize::Assets::WriteManifest->new( base => $base, into => $into );
+
+    $_->_populate_write_manifest( $manifest ) for $self->require_manifest->all;
+    $self->_populate_write_manifest( $manifest );
+
+    return $manifest;
+}
+
+sub _populate_write_manifest {
+    my $self = shift;
+    my $manifest = shift;
+
+    my $base = $manifest->base;
 
     $manifest->add_asset( $_ ) for $self->manifest->all;
 
@@ -56,7 +72,6 @@ sub write_manifest {
         }
     }
 
-    return $manifest;
 }
 
 1;

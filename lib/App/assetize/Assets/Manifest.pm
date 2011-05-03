@@ -120,7 +120,7 @@ sub parse {
     push @item, attachment => 1 if $value->{ attachment };
 
     return App::assetize::Assets::WriteManifest::Item->new( @item );
-};
+}
 
 package App::assetize::Assets::WriteManifest::Item;
 
@@ -132,5 +132,22 @@ use Any::Moose;
 has path => qw/ is ro required 1 isa Str /;
 has [qw/ source target /] => qw/ is ro required 1 isa Path::Class::File /;
 has attachment => qw/ is ro /;
+
+package App::assetize::Assets::RequireManifest;
+
+use strict;
+use warnings;
+
+use Any::Moose;
+
+with 'App::assetize::Assets::ManifestRole';
+
+sub parse {
+    my $self = shift;
+    my $assets = shift;
+
+    die "Invalid assets ($assets)" unless blessed $assets && $assets->isa( 'App::assetize::Assets' );
+    return $assets;
+}
 
 1;
