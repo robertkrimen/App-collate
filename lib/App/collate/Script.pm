@@ -39,7 +39,7 @@ sub name {
 has assets => qw/ is rw isa App::collate::Assets lazy_build 1 predicate has_assets /;
 sub _build_assets {
     my $self = shift;
-    my $assets = App::collate::Assets->new( base => $self->_base );
+    my $assets = App::collate::Assets->new( base => $self->_base.'' );
     if ( $self->has_name ) {
         $self->repository->assets( $self->_name => $assets );
     }
@@ -65,9 +65,23 @@ sub _run {
     $code->( $self );
 }
 
+#sub import {
+#    my $self = shift;
+#    return unless ref $self;
+#    my $import = shift;
+#    App::collate::_each( $import, sub {
+#        my $asset = shift;
+#        # TODO Do $repository->asset( ... ) substitution on import
+#        $self->import_manifest->add( $asset );
+#    } );
+#}
+
 sub declare {
     my $self = shift;
     my $name = shift;
+
+    # TODO Do $repository->asset( ... ) substitution on import
+
     my $assets = $self->repository->declare( $name, base => $self->_base.'', @_ );
     return $assets;
 }
@@ -79,4 +93,3 @@ sub write {
 }
 
 1;
-
