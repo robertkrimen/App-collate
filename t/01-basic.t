@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::Most;
 
-use App::assetize::Assets;
+use App::collate::Assets;
 
 ok( 1 );
 

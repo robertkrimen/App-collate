@@ -1,4 +1,4 @@
-package App::assetize::Assets::ManifestRole;
+package App::collate::Assets::ManifestRole;
 
 use strict;
 use warnings;
@@ -40,23 +40,23 @@ sub all {
     return @{ $self->_manifest };
 }
 
-package App::assetize::Assets::Manifest;
+package App::collate::Assets::Manifest;
 
 use strict;
 use warnings;
 
 use Any::Moose;
 
-with 'App::assetize::Assets::ManifestRole';
+with 'App::collate::Assets::ManifestRole';
 
-package App::assetize::Assets::AttachManifest;
+package App::collate::Assets::AttachManifest;
 
 use strict;
 use warnings;
 
 use Any::Moose;
 
-with 'App::assetize::Assets::ManifestRole';
+with 'App::collate::Assets::ManifestRole';
 
 sub parse {
     my $self = shift;
@@ -66,10 +66,10 @@ sub parse {
         $value = $1;
         $shift_prefix = $2;
     }
-    return App::assetize::Assets::AttachManifest::Item->new( path => $value, shift_prefix => $shift_prefix );
+    return App::collate::Assets::AttachManifest::Item->new( path => $value, shift_prefix => $shift_prefix );
 };
 
-package App::assetize::Assets::AttachManifest::Item;
+package App::collate::Assets::AttachManifest::Item;
 
 use strict;
 use warnings;
@@ -78,7 +78,7 @@ use Any::Moose;
 
 has [qw/ path shift_prefix /] => qw/ is ro required 1 isa Str /;
 
-package App::assetize::Assets::WriteManifest;
+package App::collate::Assets::WriteManifest;
 
 use strict;
 use warnings;
@@ -87,7 +87,7 @@ use Path::Class;
 
 use Any::Moose;
 
-with 'App::assetize::Assets::ManifestRole';
+with 'App::collate::Assets::ManifestRole';
 
 has [qw/ base into /] => qw/ is ro required 1 isa Path::Class::Dir /;
 
@@ -119,10 +119,10 @@ sub parse {
     push @item, path => $path, source => $source, target => $target;
     push @item, attachment => 1 if $value->{ attachment };
 
-    return App::assetize::Assets::WriteManifest::Item->new( @item );
+    return App::collate::Assets::WriteManifest::Item->new( @item );
 }
 
-package App::assetize::Assets::WriteManifest::Item;
+package App::collate::Assets::WriteManifest::Item;
 
 use strict;
 use warnings;
@@ -133,20 +133,20 @@ has path => qw/ is ro required 1 isa Str /;
 has [qw/ source target /] => qw/ is ro required 1 isa Path::Class::File /;
 has attachment => qw/ is ro /;
 
-package App::assetize::Assets::ImportManifest;
+package App::collate::Assets::ImportManifest;
 
 use strict;
 use warnings;
 
 use Any::Moose;
 
-with 'App::assetize::Assets::ManifestRole';
+with 'App::collate::Assets::ManifestRole';
 
 sub parse {
     my $self = shift;
     my $assets = shift;
 
-    die "Invalid assets ($assets)" unless blessed $assets && $assets->isa( 'App::assetize::Assets' );
+    die "Invalid assets ($assets)" unless blessed $assets && $assets->isa( 'App::collate::Assets' );
     return $assets;
 }
 

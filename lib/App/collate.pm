@@ -1,9 +1,9 @@
-package App::assetize;
+package App::collate;
 
 use strict;
 use warnings;
 
-use App::assetize::Assets;
+use App::collate::Assets;
 use String::Util qw/ trim /;
 
 sub _each ($$) {
@@ -22,7 +22,7 @@ sub assets {
     my $self = shift;
     my %options = @_;
 
-    my $assets = App::assetize::Assets->new( base => $options{ base } );
+    my $assets = App::collate::Assets->new( base => $options{ base } );
 
     _each( $options{ manifest }, sub {
         my $asset = shift;

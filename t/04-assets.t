@@ -5,13 +5,13 @@ use Test::Most;
 
 use File::Temp qw/ tempdir /;
 
-use App::assetize;
+use App::collate;
 
 my ( $assets, $require_assets, $manifest, @manifest, $tmp );
 
 $tmp = tempdir;
 
-$assets = App::assetize->assets( base => 't/assets',
+$assets = App::collate->assets( base => 't/assets',
     manifest => <<_END_,
 jquery-ui/jquery-ui.js
 jquery-ui/base/jquery-ui.css
