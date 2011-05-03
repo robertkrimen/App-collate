@@ -7,18 +7,18 @@ use File::Temp qw/ tempdir /;
 
 use App::assetize::Assets;
 
-my ( $assets, $require_assets, $manifest, @manifest, $tmp );
+my ( $assets, $import_assets, $manifest, @manifest, $tmp );
 
 $tmp = tempdir;
 
 $assets = App::assetize::Assets->new( base => 't/assets' );
-$require_assets = App::assetize::Assets->new( base => 't/assets' );
+$import_assets = App::assetize::Assets->new( base => 't/assets' );
 
 $assets->manifest->add( 'jquery-ui/jquery-ui.js' );
-$require_assets->manifest->add( 'jquery-ui/base/jquery-ui.css' );
-$require_assets->attach_manifest->add( 'jquery-ui/base => base' );
+$import_assets->manifest->add( 'jquery-ui/base/jquery-ui.css' );
+$import_assets->attach_manifest->add( 'jquery-ui/base => base' );
 
-$assets->require_manifest->add( $require_assets );
+$assets->import_manifest->add( $import_assets );
 
 @manifest = $assets->write_manifest( into => $tmp )->all;
 is( scalar @manifest, 5 );

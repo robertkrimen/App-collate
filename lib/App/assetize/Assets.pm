@@ -15,8 +15,8 @@ has manifest => qw/ is ro lazy 1 /, default => sub {
     return App::assetize::Assets::Manifest->new;
 };
 
-has require_manifest => qw/ is ro lazy 1 /, default => sub {
-    return App::assetize::Assets::RequireManifest->new;
+has import_manifest => qw/ is ro lazy 1 /, default => sub {
+    return App::assetize::Assets::ImportManifest->new;
 };
 
 has attach_manifest => qw/ is ro lazy 1 /, default => sub {
@@ -38,7 +38,7 @@ sub write_manifest {
 
     my $manifest = App::assetize::Assets::WriteManifest->new( base => $base, into => $into );
 
-    $_->_populate_write_manifest( $manifest ) for $self->require_manifest->all;
+    $_->_populate_write_manifest( $manifest ) for $self->import_manifest->all;
     $self->_populate_write_manifest( $manifest );
 
     return $manifest;

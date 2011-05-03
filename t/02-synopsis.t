@@ -23,7 +23,7 @@ cmp_deeply( [ $assets->manifest->all ], [qw[
 ]] );
 
 cmp_deeply( [ $assets->attach_manifest->all ], [] );
-cmp_deeply( [ $assets->require_manifest->all ], [] );
+cmp_deeply( [ $assets->import_manifest->all ], [] );
 
 $assets->attach_manifest->add( 'jquery-ui/base => base' );
 cmp_deeply( [ map { $_->path } $assets->attach_manifest->all ], [qw[

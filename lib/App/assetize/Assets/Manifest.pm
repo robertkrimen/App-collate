@@ -133,7 +133,7 @@ has path => qw/ is ro required 1 isa Str /;
 has [qw/ source target /] => qw/ is ro required 1 isa Path::Class::File /;
 has attachment => qw/ is ro /;
 
-package App::assetize::Assets::RequireManifest;
+package App::assetize::Assets::ImportManifest;
 
 use strict;
 use warnings;
