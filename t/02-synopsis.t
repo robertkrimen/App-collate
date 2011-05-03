@@ -3,17 +3,33 @@ use strict;
 use warnings;
 use Test::Most;
 
+use File::Temp qw/ tempdir /;
+
 use App::assetize::Assets;
 
-my $assets = App::assetize::Assets->new;
+my ( $assets, $manifest, $tmp );
+
+$tmp = tempdir;
+
+$assets = App::assetize::Assets->new( base => 't/assets' );
 
 $assets->manifest->add( 'jquery-ui/jquery-ui.js' );
-$assets->manifest->add( 'jquery-ui/jquery-ui.css' );
+$assets->manifest->add( 'jquery-ui/base/jquery-ui.css' );
 $assets->manifest->add( '    ' );
 $assets->manifest->add( undef );
 cmp_deeply( [ $assets->manifest->all ], [qw[
     jquery-ui/jquery-ui.js
-    jquery-ui/jquery-ui.css
+    jquery-ui/base/jquery-ui.css
 ]] );
+
+cmp_deeply( [ $assets->attach_manifest->all ], [] );
+cmp_deeply( [ $assets->require_manifest->all ], [] );
+
+$assets->attach_manifest->add( 'jquery-ui/base => base' );
+cmp_deeply( [ map { $_->path } $assets->attach_manifest->all ], [qw[
+    jquery-ui/base
+]] );
+
+$assets->write_manifest( into => $tmp );
 
 done_testing;
