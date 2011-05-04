@@ -10,8 +10,10 @@ use App::collate::Script;
 my ( $script, $assets, $manifest, @manifest, $tmp );
 
 $tmp = tempdir;
+$t::tmp = 'trial';
 
 $script = App::collate::Script->new( file => Path::Class::file( 't/assets/app.assets' ) );
+
 $script->_run;
 
 ok( $script->repository->has( 'jquery-ui' ) );

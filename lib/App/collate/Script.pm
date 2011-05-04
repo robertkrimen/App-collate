@@ -85,16 +85,26 @@ sub declare {
     my $self = shift;
     my $name = shift;
 
-    # TODO Do $repository->asset( ... ) substitution on import
-
     my $assets = $self->repository->declare( $name, base => $self->_base.'', @_ );
     return $assets;
 }
 
+use File::Copy qw/ copy /;
+
 sub write {
     my $self = shift;
-
     return if $self->load_only;
+
+    my $into = shift;
+
+    my $write_manifest = $self->assets->write_manifest( into => $into, repository => $self->repository );
+
+    for my $item ( $write_manifest->all ) {
+        $item->target->parent->mkpath;
+        copy $item->source, $item->target;
+    }
+
+    return $write_manifest;
 }
 
 1;

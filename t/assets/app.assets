@@ -26,4 +26,5 @@ app.css
 app.js
 _END_
 
+    $assets->write( $t::tmp );
 };
