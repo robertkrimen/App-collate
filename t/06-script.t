@@ -21,7 +21,7 @@ cmp_deeply( [ $script->repository->assets( 'jquery-ui' )->manifest->all ], [qw[
     jquery-ui/base/jquery-ui.css
 ]] );
 
-$manifest = $script->assets->write_manifest( into => $tmp );
+$manifest = $script->assets->write_manifest( into => $tmp, repository => $script->repository );
 
 cmp_deeply( [ map { $_->path } $manifest->all ], [qw[
     jquery-ui/jquery-ui.js

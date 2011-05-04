@@ -146,7 +146,13 @@ sub parse {
     my $self = shift;
     my $assets = shift;
 
-    die "Invalid assets ($assets)" unless blessed $assets && $assets->isa( 'App::collate::Assets' );
+    if ( ref $assets eq '' ) {
+        die "Invalid assets" unless defined $assets && length $assets;
+    }
+    else {
+        die "Invalid assets ($assets)" unless blessed $assets && $assets->isa( 'App::collate::Assets' );
+    }
+
     return $assets;
 }
 

@@ -53,12 +53,25 @@ sub write_manifest {
     die "*** Missing into" unless defined $into && length $into;
     $into = dir $into;
 
+    my $repository = $options{ repository };
+
     die "*** Invalid into (not a directory or does not exist)" unless -d $into;
     die "*** Invalid base (not a directory or does not exist)" unless -d $base;
 
     my $manifest = App::collate::Assets::WriteManifest->new( base => $base, into => $into );
 
-    $_->_populate_write_manifest( $manifest ) for $self->import_manifest->all;
+    for my $assets ( $self->import_manifest->all ) {
+        if ( ref $assets eq '' ) {
+            if ( ! $repository ) {
+                die "*** Missing repository to lookup assets ($assets)";
+            }
+            if ( ! $repository->has( $assets ) ) {
+                die "*** Missing assets ($assets) in repository";
+            }
+            $assets = $repository->assets( $assets );
+        }
+        $assets->_populate_write_manifest( $manifest );
+    }
     $self->_populate_write_manifest( $manifest );
 
     return $manifest;
