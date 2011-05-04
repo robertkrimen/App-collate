@@ -65,16 +65,21 @@ sub _run {
     $code->( $self );
 }
 
-#sub import {
-#    my $self = shift;
-#    return unless ref $self;
-#    my $import = shift;
-#    App::collate::_each( $import, sub {
-#        my $asset = shift;
-#        # TODO Do $repository->asset( ... ) substitution on import
-#        $self->import_manifest->add( $asset );
-#    } );
-#}
+sub include {
+    my $self = shift;
+    $self->assets->include( @_ );
+}
+
+sub attach {
+    my $self = shift;
+    $self->assets->attach( @_ );
+}
+
+sub import {
+    my $self = shift;
+    return unless ref $self;
+    $self->assets->import( @_ );
+}
 
 sub declare {
     my $self = shift;

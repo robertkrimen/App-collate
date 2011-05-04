@@ -13,14 +13,11 @@ jquery-ui/base/jquery-ui.css
 _END_
     );
 
-#    $assets->import( <<_END_ );
-#jquery-ui
-#_END_
+    $assets->import( <<_END_ );
+jquery-ui
+_END_
 
-    #$assets->assets->import_manifest->add( $assets->repository->assets( 'jquery-ui' ) );
-    $assets->assets->import_manifest->add( 'jquery-ui' );
-
-    $assets->assets->include( <<_END_ );
+    $assets->include( <<_END_ );
 app.css
 app.js
 _END_

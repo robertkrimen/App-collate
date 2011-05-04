@@ -43,6 +43,16 @@ sub attach {
     } );
 }
 
+sub import {
+    my $self = shift;
+    return unless ref $self;
+    my $import = shift;
+    App::collate::_each( $import, sub {
+        my $asset = shift;
+        $self->import_manifest->add( $asset );
+    } );
+}
+
 sub write_manifest {
     my $self = shift;
     my %options =  @_;
