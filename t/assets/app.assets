@@ -17,6 +17,10 @@ _END_
 jquery-ui
 _END_
 
+    $assets->import( <<_END_ );
+jquery-ui
+_END_
+
     $assets->include( <<_END_ );
 app.css
 app.js

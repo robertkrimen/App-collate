@@ -91,6 +91,11 @@ with 'App::collate::Assets::ManifestRole';
 
 has [qw/ base into /] => qw/ is ro required 1 isa Path::Class::Dir /;
 
+has _seen => qw/ is ro isa HashRef lazy_build 1 /;
+sub _build__seen {
+    return {};
+}
+
 sub add_asset {
     my $self = shift;
     my $path = shift;
@@ -112,6 +117,10 @@ sub parse {
     my $path = $value->{ path };
     my $source = $self->base->file( $path );
     my $target = $self->into->file( $path );
+
+    return if $self->_seen->{ "$target" };
+
+    $self->_seen->{ "$target" } = 1;
 
     die "*** Invalid asset \"$source\" (not a file or does not exist)" unless -f $source;
 
