@@ -98,19 +98,19 @@ sub _populate_write_manifest {
     {
         my @manifest = $self->attach_manifest->all;
         for my $item ( @manifest ) {
-            my $source = $item->source;
+            my $source = Path::Class::dir( $self->base )->file( $item->path );
             if ( -d $source ) {
                 my $base_source = dir $source;
                 $base_source->recurse( callback => sub {
                     my $source = shift;
                     if ( -f $source && $source !~ m/\.(?:css|js)/ ) {
                         my $path = file( $item->path, substr "$source", length $base_source );
-                        $manifest->add_attachment( "$path" );
+                        $manifest->add_attachment( $source, "$path" );
                     }
                 } );
             }
             else {
-                $manifest->add_attachment( $item->path );
+                $manifest->add_attachment( $source, $item->path );
             }
         }
     }
