@@ -24,6 +24,7 @@ sub assets {
 
     my $assets = App::collate::Assets->new( base => $options{ base } );
 
+    $assets->import( $options{ import } );
     $assets->include( $options{ include } );
     $assets->attach( $options{ attach } );
 

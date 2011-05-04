@@ -1,0 +1,16 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+sub {
+    my ( $assets ) = @_;
+
+    $assets->declare( 'qunit' =>
+        include => <<_END_,
+qunit/qunit.js
+qunit/qunit.css
+_END_
+    );
+
+};

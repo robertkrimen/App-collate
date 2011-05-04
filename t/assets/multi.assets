@@ -1,0 +1,34 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+sub {
+    my ( $assets ) = @_;
+
+    $assets->declare( 'jquery' =>
+        include => <<_END_,
+jquery.js
+_END_
+    );
+
+    $assets->declare( 'jquery-ui' =>
+        include => <<_END_,
+jquery-ui/jquery-ui.js
+jquery-ui/base/jquery-ui.css
+_END_
+        import => <<_END_,
+jquery
+_END_
+    );
+
+    $assets->declare( 'qunit' =>
+        include => <<_END_,
+qunit/qunit.js
+qunit/qunit.css
+_END_
+        import => <<_END_,
+jquery-ui
+_END_
+    );
+};

@@ -70,6 +70,18 @@ sub write_manifest {
 
     my $manifest = App::collate::Assets::WriteManifest->new( base => $base, into => $into );
 
+    $self->_populate_write_manifest( $manifest, $repository );
+
+    return $manifest;
+}
+
+sub _populate_write_manifest {
+    my $self = shift;
+    my $manifest = shift;
+    my $repository = shift;
+
+    my $base = $manifest->base;
+
     for my $assets ( $self->import_manifest->all ) {
         if ( ref $assets eq '' ) {
             if ( ! $repository ) {
@@ -80,18 +92,8 @@ sub write_manifest {
             }
             $assets = $repository->assets( $assets );
         }
-        $assets->_populate_write_manifest( $manifest );
+        $assets->_populate_write_manifest( $manifest, $repository );
     }
-    $self->_populate_write_manifest( $manifest );
-
-    return $manifest;
-}
-
-sub _populate_write_manifest {
-    my $self = shift;
-    my $manifest = shift;
-
-    my $base = $manifest->base;
 
     $manifest->add_asset( $_ ) for $self->manifest->all;
 

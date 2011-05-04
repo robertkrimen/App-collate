@@ -50,7 +50,8 @@ sub load {
     my $self = shift;
     my $file = shift;
 
-    my $api = ( ref $self )->new( app => $self->app, repository => $self->repository, load_only => 1, file => Path::Class::File->new( $file ) );
+    my $script = ( ref $self )->new( repository => $self->repository, load_only => 1, file => Path::Class::File->new( $file ) );
+    $script->_run;
 }
 
 sub _run {
