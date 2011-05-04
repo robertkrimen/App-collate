@@ -32,5 +32,13 @@ cmp_deeply( [ map { $_->path } $manifest->all ], [qw[
     app.js
 ]] );
 
+$t::tmp = Path::Class::dir( $t::tmp );
+
+ok( -s $t::tmp->file(qw[ app.css ]) );
+ok( -s $t::tmp->file(qw[ app.js ]) );
+ok( -s $t::tmp->file(qw[ jquery-ui/jquery-ui.js ]) );
+ok( -s $t::tmp->file(qw[ jquery-ui/base/jquery-ui.css ]) );
+
+
 done_testing;
 
