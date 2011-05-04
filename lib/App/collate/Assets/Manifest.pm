@@ -89,7 +89,7 @@ use Any::Moose;
 
 with 'App::collate::Assets::ManifestRole';
 
-has [qw/ base into /] => qw/ is ro required 1 isa Path::Class::Dir /;
+has [qw/ into /] => qw/ is ro required 1 isa Path::Class::Dir /;
 
 has _seen => qw/ is ro isa HashRef lazy_build 1 /;
 sub _build__seen {
@@ -98,24 +98,25 @@ sub _build__seen {
 
 sub add_asset {
     my $self = shift;
+    my $source = shift;
     my $path = shift;
 
-    $self->add({ path => $path });
+    $self->add({ source => $source, path => $path });
 }
 
 sub add_attachment {
     my $self = shift;
+    my $source = shift;
     my $path = shift;
 
-    $self->add({ path => $path, attachment => 1 });
+    $self->add({ source => $source, path => $path, attachment => 1 });
 }
 
 sub parse {
     my $self = shift;
     my $value = shift;
 
-    my $path = $value->{ path };
-    my $source = $self->base->file( $path );
+    my ( $source, $path ) = @$value{qw/ source path /};
     my $target = $self->into->file( $path );
 
     return if $self->_seen->{ "$target" };

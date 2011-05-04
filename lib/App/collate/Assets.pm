@@ -65,8 +65,8 @@ sub write_manifest {
 
     my $repository = $options{ repository };
 
-    die "*** Invalid into (not a directory or does not exist)" unless -d $into;
-    die "*** Invalid base (not a directory or does not exist)" unless -d $base;
+    die "*** Invalid into ($into): Not a directory or does not exist" unless -d $into;
+    die "*** Invalid base ($base): Not a directory or does not exist" unless -d $base;
 
     my $manifest = App::collate::Assets::WriteManifest->new( base => $base, into => $into );
 
@@ -79,8 +79,6 @@ sub _populate_write_manifest {
     my $self = shift;
     my $manifest = shift;
     my $repository = shift;
-
-    my $base = $manifest->base;
 
     for my $assets ( $self->import_manifest->all ) {
         if ( ref $assets eq '' ) {
@@ -95,12 +93,12 @@ sub _populate_write_manifest {
         $assets->_populate_write_manifest( $manifest, $repository );
     }
 
-    $manifest->add_asset( $_ ) for $self->manifest->all;
+    $manifest->add_asset( Path::Class::dir( $self->base )->file( $_ ), $_ ) for $self->manifest->all;
 
     {
         my @manifest = $self->attach_manifest->all;
         for my $item ( @manifest ) {
-            my $source = $base->file( $item->path );
+            my $source = $item->source;
             if ( -d $source ) {
                 my $base_source = dir $source;
                 $base_source->recurse( callback => sub {

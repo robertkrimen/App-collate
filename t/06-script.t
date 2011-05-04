@@ -10,7 +10,7 @@ use App::collate::Script;
 my ( $script, $assets, $manifest, @manifest, $tmp );
 
 $tmp = tempdir;
-$t::tmp = 'trial';
+$t::tmp = $tmp;
 
 $script = App::collate::Script->new( file => Path::Class::file( 't/assets/app.assets' ) );
 
@@ -41,4 +41,3 @@ ok( -s $t::tmp->file(qw[ jquery-ui/base/jquery-ui.css ]) );
 
 
 done_testing;
-

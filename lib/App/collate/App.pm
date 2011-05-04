@@ -12,6 +12,9 @@ use Path::Class();
 
 use Any::Moose;
 
+use App::collate::Repository;
+use App::collate::Script;
+
 sub run {
     my $self = shift;
     return $self->new->run( @_ ) unless ref $self;
@@ -37,3 +40,4 @@ sub run {
     $script->_run;
 }
 
+1;
