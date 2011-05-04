@@ -26,7 +26,14 @@ sub run {
         usage "*** Invalid file ($file): Not a file or does not exist";
     }
 
-    my $script = App::collate::Script->new( file => Path::Class::file( $file ) );
+    my $repository = App::collate::Repository->new;
+
+    if ( $ENV{ COLLATE_REPOSITORY } ) {
+        my $script = App::collate::Script->new( file => Path::Class::file( $ENV{ COLLATE_REPOSITORY } ), load_only => 1, repository => $repository );
+        $script->_run;
+    }
+
+    my $script = App::collate::Script->new( file => Path::Class::file( $file ), repository => $repository );
     $script->_run;
 }
 

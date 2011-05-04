@@ -1,4 +1,4 @@
 # ---
 
-* Repository
-* import, include, attach, external, etc.
+dist.ini
+compression

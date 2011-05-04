@@ -1,4 +1,5 @@
 package App::collate;
+# ABSTRACT: Collate .js and .css assets
 
 use strict;
 use warnings;
