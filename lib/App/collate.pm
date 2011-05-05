@@ -4,8 +4,10 @@ package App::collate;
 use strict;
 use warnings;
 
-use App::collate::Assets;
 use String::Util qw/ trim /;
+
+
+require App::collate::Assets;
 
 sub _each ($$) {
     my $source = shift;

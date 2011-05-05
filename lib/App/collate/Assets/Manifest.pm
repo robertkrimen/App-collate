@@ -5,6 +5,7 @@ use warnings;
 
 use Try::Tiny;
 use String::Util qw/ trim /;
+use App::collate;
 
 use Any::Moose 'Role';
 
@@ -85,11 +86,11 @@ use warnings;
 
 use Path::Class;
 
-use Any::Moose;
+use App::collate::Moose;
 
 with 'App::collate::Assets::ManifestRole';
 
-has [qw/ into /] => qw/ is ro required 1 isa Path::Class::Dir /;
+has_dir [qw/ into /] => qw/ is ro required 1 isa Path::Class::Dir /;
 
 has _seen => qw/ is ro isa HashRef lazy_build 1 /;
 sub _build__seen {
@@ -137,10 +138,10 @@ package App::collate::Assets::WriteManifest::Item;
 use strict;
 use warnings;
 
-use Any::Moose;
+use App::collate::Moose;
 
 has path => qw/ is ro required 1 isa Str /;
-has [qw/ source target /] => qw/ is ro required 1 isa Path::Class::File /;
+has_file [qw/ source target /] => qw/ is ro required 1 /;
 has attachment => qw/ is ro /;
 
 package App::collate::Assets::ImportManifest;

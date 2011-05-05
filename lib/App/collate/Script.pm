@@ -3,16 +3,16 @@ package App::collate::Script;
 use App::collate::Repository;
 use App::collate::Assets;
 
-use Any::Moose;
+use App::collate::Moose;
 
-has file => qw/ is ro required 1 isa Path::Class::File /;
+has_file file => qw/ is ro required 1 /;
 
 has repository => qw/ is rw lazy_build 1 isa App::collate::Repository /;
 sub _build_repository {
     return App::collate::Repository->new;
 }
 
-has _base => qw/ is rw isa Path::Class::Dir lazy_build 1 /;
+has_dir _base => qw/ is rw lazy_build 1 /;
 sub _build__base {
     my $self = shift;
     return $self->file->parent;

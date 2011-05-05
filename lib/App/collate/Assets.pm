@@ -4,12 +4,13 @@ use strict;
 use warnings;
 
 use Try::Tiny;
+use App::collate;
 use App::collate::Assets::Manifest;
 use Path::Class;
 
-use Any::Moose;
+use App::collate::Moose;
 
-has base => qw/ is ro required 1 isa Str /;
+has_dir base => qw/ is rw required 1 /;
 
 has manifest => qw/ is ro lazy 1 /, default => sub {
     return App::collate::Assets::Manifest->new;
