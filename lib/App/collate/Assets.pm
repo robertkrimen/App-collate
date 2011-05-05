@@ -4,9 +4,11 @@ use strict;
 use warnings;
 
 use Try::Tiny;
+use Path::Class;
+
 use App::collate;
 use App::collate::Assets::Manifest;
-use Path::Class;
+use App::collate::Util;
 
 use App::collate::Moose;
 
@@ -28,7 +30,7 @@ sub include {
     my $self = shift;
     my $include = shift;
 
-    App::collate::_each( $include, sub {
+    each_trimmed_line( $include, sub {
         my $asset = shift;
         $self->manifest->add( $asset );
     } );
@@ -38,7 +40,7 @@ sub attach {
     my $self = shift;
     my $attach = shift;
 
-    App::collate::_each( $attach, sub {
+    each_trimmed_line( $attach, sub {
         my $asset = shift;
         $self->attach_manifest->add( $asset );
     } );
@@ -48,7 +50,7 @@ sub import {
     my $self = shift;
     return unless ref $self;
     my $import = shift;
-    App::collate::_each( $import, sub {
+    each_trimmed_line( $import, sub {
         my $asset = shift;
         $self->import_manifest->add( $asset );
     } );

@@ -2,6 +2,7 @@ package App::collate::Script;
 
 use App::collate::Repository;
 use App::collate::Assets;
+use App::collate::Util;
 
 use App::collate::Moose;
 
@@ -50,7 +51,9 @@ sub load {
     my $self = shift;
     my $file = shift;
 
-    my $script = ( ref $self )->new( repository => $self->repository, load_only => 1, file => Path::Class::File->new( $file ) );
+    $file = expand_path( $file, $self->_base );
+
+    my $script = ( ref $self )->new( repository => $self->repository, load_only => 1, file => $file );
     $script->_run;
 }
 

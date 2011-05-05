@@ -12,10 +12,10 @@ my ( $script, $assets, $manifest, @manifest, $tmp );
 $tmp = tempdir;
 $t::tmp = 'trial';
 
-$script = App::collate::Script->new( file => Path::Class::file( 't/assets/empty.assets' ) );
+$script = App::collate::Script->new( file => 't/assets/empty.assets' );
 $script->_run;
 
-$script->load( 't/assets/multi.assets' );
+$script->load( 'multi.assets' );
 ok( $script->repository->has( 'jquery' ) );
 ok( $script->repository->has( 'jquery-ui' ) );
 ok( $script->repository->has( 'qunit' ) );

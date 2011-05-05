@@ -13,8 +13,8 @@ my ( $script, $assets, $manifest, @manifest, $tmp );
 $tmp = tempdir;
 $t::tmp = $tmp;
 
-$script = App::collate::Script->new( file => Path::Class::file( 't/assets/test/app.assets' ) );
-$script->load( 't/assets/multi.assets' );
+$script = App::collate::Script->new( file => 't/assets/test/app.assets' );
+$script->load( '../multi.assets' );
 $script->_run;
 $script->import( <<_END_ );
 qunit
