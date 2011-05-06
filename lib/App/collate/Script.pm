@@ -1,5 +1,7 @@
 package App::collate::Script;
 
+use Path::Class;
+
 use App::collate::Repository;
 use App::collate::Assets;
 use App::collate::Util;
@@ -94,7 +96,7 @@ sub declare {
 }
 
 use File::Copy qw/ copy /;
-use File::Temp;
+use File::Temp();
 
 sub write {
     my $self = shift;
@@ -112,31 +114,78 @@ sub write {
         }
     }
     else {
-        my ( @css, @js );
+        my ( $js, $css, $js_file, $css_file );
 
-        for my $item ( $write_manifest->all ) {
-            if ( $item->path =~ m/\.js$/ ) {
-                push @js, join '', ";\n", scalar $item->source->slurp;
+        {
+            my ( @js, @css );
+
+            for my $item ( $write_manifest->all ) {
+                if ( $item->path =~ m/\.js$/ ) {
+                    push @js, join '', ";\n", scalar $item->source->slurp;
+                }
+                elsif ( $item->path =~ m/\.css$/ ) {
+                    push @css, join '', "\n", scalar $item->source->slurp;
+                }
+                else {
+                    $item->target->parent->mkpath;
+                    copy $item->source, $item->target;
+                }
             }
-            elsif ( $item->path =~ m/\.css$/ ) {
-                push @css, join '', "\n", scalar $item->source->slurp;
-            }
-            else {
-                $item->target->parent->mkpath;
-                copy $item->source, $item->target;
-            }
+
+            $js = join '', @js;
+            $css = join '', @css;
         }
 
-        if ( @js ) {
-            my $file = $into->file( 'assets0.js' );
-            $file->openw->print( join '', @js );
-            App::collate->yuicompressor( with => 'yuicompressor', input => $file, output => "$file.compressed" );
+        $js_file = asset_file type => 'js', base => $into, name => $options{ name }, content => \$js;
+        $css_file = asset_file type => 'css', base => $into, name => $options{ name }, content => \$css;
+
+        if ( defined $js ) {
+            my $tmp = File::Temp->new( suffix => '.js' );
+            $tmp->print( $js );
+            $js_file->openw->print( $js );
+            #App::collate->yuicompressor( with => 'yuicompressor', input => "$tmp", output => "$js_file" );
         }
 
-        if ( @css ) {
-            my $file = $into->file( 'assets0.css' );
-            $file->openw->print( join '', @css );
-            App::collate->csstidy( input => $file, output => "$file.compressed" );
+        if ( defined $css ) {
+            my $tmp = File::Temp->new( suffix => '.css' );
+            $tmp->print( $css );
+            $css_file->openw->print( $css );
+            #App::collate->yuicompressor( with => 'yuicompressor', input => "$tmp", output => "$css_file" );
+        }
+
+        if ( $options{ rewrite } ) {
+
+            for my $rewrite ( @{ $options{ rewrite } } ) {
+                my ( $from, $to, $path ) = @$rewrite;
+                $from = Path::Class::file( expand_path $from, $self->_base );
+                $to = Path::Class::file( expand_path $to, $self->_base );
+                my @from = $from->slurp;
+                my @to;
+
+                my $replace;
+                while ( @from ) {
+                    my $line = shift @from;
+                    if ( $replace ) {
+                        if ( $line =~ m/^\s*<!--\s*\]\s*-->\s*$/ ) {
+                            if ( $replace eq 'js' ) {
+                                push @to, qq!<script type="text/javascript" src="$js_file"></script>\n!;
+                            }
+                            else {
+                                push @to, qq!<link rel="stylesheet" href="$css_file" />\n!;
+                            }
+                            undef $replace;
+                        }
+                    }
+                    elsif ( $line =~ m/^\s*<!--\s*collate:(js|css)\s*\[\s*-->\s*$/ ) {
+                        $replace = $1;
+                    }
+                    else {
+                        push @to, $line;
+                    }
+                }
+
+                $to->openw->print( join '', @to );
+            }
         }
     }
 
