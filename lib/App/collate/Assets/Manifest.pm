@@ -86,6 +86,9 @@ use warnings;
 
 use Path::Class;
 
+use App::collate::Util;
+use App::collate::Compressor;
+
 use App::collate::Moose;
 
 with 'App::collate::Assets::ManifestRole';
@@ -133,16 +136,106 @@ sub parse {
     return App::collate::Assets::WriteManifest::Item->new( @item );
 }
 
+sub sifted {
+    my $self = shift;
+
+    my %sifted;
+    $sifted{ $_ } = [] for qw/ js css attachment /;
+
+    for my $item ( $self->all ) {
+        push @{ $sifted{ $item->type } }, $item;
+    }
+
+    return %sifted;
+}
+
+sub write {
+    my $self = shift;
+    my %options = @_;
+
+    my $into = $self->into;
+
+    if ( ! $options{ compressed } ) {
+        $_->write for $self->all;
+    }
+    else {
+        my %sifted = $self->sifted;
+
+        my $compressor = App::collate::Compressor->from( $options{ compressed } );
+
+        for my $item (@{ $sifted{ attachment } }) {
+            $item->write;
+        }
+
+        my $js_file = $compressor->compress( type => 'js', list => $sifted{ js }, into => $into, name => $options{ name } );
+        my $css_file = $compressor->compress( type => 'css', list => $sifted{ css }, into => $into, name => $options{ name } );
+
+        if ( $options{ rewrite } ) {
+
+            my $rewrite_base = $options{ rewrite_base };
+
+            for my $rewrite ( @{ $options{ rewrite } } ) {
+                my ( $from, $to, $path ) = @$rewrite;
+                $from = Path::Class::file( expand_path $from, $rewrite_base );
+                $to = Path::Class::file( expand_path $to, $rewrite_base );
+                my @from = $from->slurp;
+                my @to;
+
+                my $replace;
+                while ( @from ) {
+                    my $line = shift @from;
+                    if ( $replace ) {
+                        if ( $line =~ m/^\s*<!--\s*\]\s*-->\s*$/ ) {
+                            if ( $replace eq 'js' ) {
+                                push @to, qq!<script type="text/javascript" src="$js_file"></script>\n!;
+                            }
+                            else {
+                                push @to, qq!<link rel="stylesheet" href="$css_file" />\n!;
+                            }
+                            undef $replace;
+                        }
+                    }
+                    elsif ( $line =~ m/^\s*<!--\s*collate:(js|css)\s*\[\s*-->\s*$/ ) {
+                        $replace = $1;
+                    }
+                    else {
+                        push @to, $line;
+                    }
+                }
+
+                $to->openw->print( join '', @to );
+            }
+        }
+    }
+}
+
 package App::collate::Assets::WriteManifest::Item;
 
 use strict;
 use warnings;
 
+use File::Copy qw/ copy /;
+
 use App::collate::Moose;
 
 has path => qw/ is ro required 1 isa Str /;
 has_file [qw/ source target /] => qw/ is ro required 1 /;
+has type => qw/ is ro isa Str lazy_build 1 /;
+sub _build_type {
+    my $self = shift;
+    return 'attachment' if $self->attachment;
+    my $path = $self->path;
+    return lc $1 if $path =~ m/\.(js|css)/i;
+    die "*** Invalid item ($path): Not .js, .css, or attachment";
+}
+
 has attachment => qw/ is ro /;
+
+sub write {
+    my $self = shift;
+    $self->target->parent->mkpath;
+    copy $self->source, $self->target;
+}
 
 package App::collate::Assets::ImportManifest;
 
