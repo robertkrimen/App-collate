@@ -2,6 +2,7 @@ package App::collate::Script;
 
 use Path::Class;
 
+use App::collate::Compressor;
 use App::collate::Repository;
 use App::collate::Assets;
 use App::collate::Util;
@@ -9,6 +10,14 @@ use App::collate::Util;
 use App::collate::Moose;
 
 has_file file => qw/ is ro required 1 /;
+
+has compressor => qw/ is rw lazy_build 1 isa App::collate::Compressor /, handles => [qw/
+    setup_yuicompressor
+    setup_closure_compiler
+/];
+sub _build_compressor {
+    return App::collate::Compressor->new;
+}
 
 has repository => qw/ is rw lazy_build 1 isa App::collate::Repository /;
 sub _build_repository {
@@ -106,7 +115,7 @@ sub write {
     my %options = @_;
 
     my $write_manifest = $self->assets->write_manifest( into => $into, repository => $self->repository );
-    $write_manifest->write( rewrite_base => $self->_base, %options );
+    $write_manifest->write( rewrite_base => $self->_base, compressor => $self->compressor, %options );
 
     return $write_manifest;
 }

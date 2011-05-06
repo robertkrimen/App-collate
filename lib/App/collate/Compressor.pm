@@ -90,7 +90,6 @@ sub resolve_jar_cfg {
         }
         else {
             $value = '' if empty $value;
-            warn $value;
             if ( $value =~ m/\.jar$/ ) {
                 push @options, jar => $value;
             }
@@ -112,7 +111,7 @@ sub resolve_yuicompressor_cfg {
 sub resolve_closure_compiler_cfg {
     my $self = shift;
 
-    return $self->resolve_jar_cfg( @_, method => 'compiler_compiler' );
+    return $self->resolve_jar_cfg( @_, method => 'closure_compiler' );
 }
 
 sub setup_yuicompressor {
@@ -169,7 +168,7 @@ sub compress {
         App::collate->closure_compile( %$method, input => "$tmp", output => "$file" );
     }
     else {
-        die "*** Invalid compression method ($method)";
+        die "*** Invalid compression method ($method->{ method })";
     }
 
     return $file;

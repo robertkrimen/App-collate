@@ -11,6 +11,7 @@ _END_
 use Path::Class;
 use File::HomeDir();
 
+use App::collate::Compressor;
 use App::collate::Repository;
 use App::collate::Script;
 use App::collate::Util;
@@ -31,6 +32,7 @@ sub run {
         usage "*** Invalid file ($file): Not a file or does not exist";
     }
 
+    my $compressor = App::collate::Compressor->new;
     my $repository = App::collate::Repository->new;
 
     my $collaterc;
@@ -42,13 +44,16 @@ sub run {
         }
     }
 
+    my @run;
     if ( ! empty $collaterc && $collaterc ne '-' && -f $collaterc ) {
-        my $script = App::collate::Script->new( file => file( $collaterc ), repository => $repository );
+        push @run, $collaterc;
+    }
+    push @run, $file;
+
+    for ( @run ) {
+        my $script = App::collate::Script->new( file => file( $_ ), compressor => $compressor, repository => $repository );
         $script->_run;
     }
-
-    my $script = App::collate::Script->new( file => file( $file ), repository => $repository );
-    $script->_run;
 }
 
 1;
