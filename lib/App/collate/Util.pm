@@ -51,12 +51,15 @@ sub expand_path ($;$) {
         $path1 = file( $base, $path1 );
     }
 
+    $path1 =~ s/^\.\///;
+
     return "$path1";
 }
 
 sub join_slash_path {
     my $path = join '/', grep { defined $_ && length $_ } @_;
     $path =~ s/\/+/\//;
+    $path =~ s/^\.\///;
     return $path;
 }
 

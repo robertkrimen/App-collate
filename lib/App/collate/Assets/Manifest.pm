@@ -160,12 +160,12 @@ sub write {
     }
     else {
         my $compressor = App::collate::Compressor->from( $options{ compressed } );
-        my @collapse = @{ $options{ collapse } || [] };
+        my @detach = @{ $options{ detach } || [] };
 
         my %sifted = $self->sifted;
 
 ITEM:   for my $item (@{ $sifted{ attachment } }) {
-            for ( @collapse ) {
+            for ( @detach ) {
                 if ( -1 != index $item->path, "$_/" ) {
                     my $target = $self->into->file( substr $item->path, length $_ );
                     $target->parent->mkpath;
@@ -182,14 +182,23 @@ ITEM:   for my $item (@{ $sifted{ attachment } }) {
         if ( $options{ rewrite } ) {
 
             my $rewrite_base = $options{ rewrite_base };
+            my $rewrite_path = '';
 
-            for my $rewrite ( @{ $options{ rewrite } } ) {
-                my ( $from, $to, $path ) = @$rewrite;
-                $from = Path::Class::file( expand_path $from, $rewrite_base );
-                $to = Path::Class::file( expand_path $to, $rewrite_base );
-                $to->parent->mkpath;
-                $to->openw->print(
-                    App::collate::Util->rewrite_content( [ $from->slurp ], path => $path, js => $js_file, css => $css_file ) );
+            my @rewrite = @{ $options{ rewrite } };
+            for ( @rewrite ) {
+                next unless defined $_;
+                if ( ref $_ eq '' ) {
+                    $rewrite_path = $_;
+                }
+                elsif ( ref $_ eq 'ARRAY' ) {
+                    my ( $from, $to, $path ) = @$_;
+                    $path = $rewrite_path unless defined $path;
+                    $from = Path::Class::file( expand_path $from, $rewrite_base );
+                    $to = Path::Class::file( expand_path $to, $rewrite_base );
+                    $to->parent->mkpath;
+                    $to->openw->print(
+                        App::collate::Util->rewrite_content( [ $from->slurp ], path => $path, js => $js_file, css => $css_file ) );
+                }
             }
         }
     }
