@@ -178,32 +178,9 @@ sub write {
                 my ( $from, $to, $path ) = @$rewrite;
                 $from = Path::Class::file( expand_path $from, $rewrite_base );
                 $to = Path::Class::file( expand_path $to, $rewrite_base );
-                my @from = $from->slurp;
-                my @to;
-
-                my $replace;
-                while ( @from ) {
-                    my $line = shift @from;
-                    if ( $replace ) {
-                        if ( $line =~ m/^\s*<!--\s*\]\s*-->\s*$/ ) {
-                            if ( $replace eq 'js' ) {
-                                push @to, qq!<script type="text/javascript" src="$js_file"></script>\n!;
-                            }
-                            else {
-                                push @to, qq!<link rel="stylesheet" href="$css_file" />\n!;
-                            }
-                            undef $replace;
-                        }
-                    }
-                    elsif ( $line =~ m/^\s*<!--\s*collate:(js|css)\s*\[\s*-->\s*$/ ) {
-                        $replace = $1;
-                    }
-                    else {
-                        push @to, $line;
-                    }
-                }
-
-                $to->openw->print( join '', @to );
+                $to->parent->mkpath;
+                $to->openw->print(
+                    App::collate::Util->rewrite_content( [ $from->slurp ], path => $path, js => $js_file, css => $css_file ) );
             }
         }
     }

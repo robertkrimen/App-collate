@@ -8,7 +8,7 @@ use String::Util qw/ trim /;
 use Path::Class;
 use Digest::SHA qw/ sha1_hex /;
 
-pkg->export(qw/ each_trimmed_line expand_path asset_file /);
+pkg->export(qw/ each_trimmed_line expand_path asset_file empty join_slash_path /);
 
 sub asset_file {
     my %options = @_;
@@ -52,6 +52,55 @@ sub expand_path ($;$) {
     }
 
     return "$path1";
+}
+
+sub join_slash_path {
+    my $path = join '/', grep { defined $_ && length $_ } @_;
+    $path =~ s/\/+/\//;
+    return $path;
+}
+
+sub empty ($) {
+    return not defined $_[0] && length $_[0];
+}
+
+sub rewrite_content {
+    my $self = shift;
+    my $input = shift;
+    my %arguments = @_;
+
+    my @output;
+    my @input = ref $input eq 'ARRAY' ? @$input : split m/\n/, $input;
+
+    my %substitute;
+    for (qw/ js css /) {
+        next if empty( my $file = $arguments{ $_ } );
+        $substitute{ $_ } = join_slash_path $arguments{ path }, $file->basename;
+    }
+
+    my $rewrite;
+    while ( @input ) {
+        local $_ = shift @input;
+
+        if ( $rewrite ) {
+            undef $rewrite if m/^\s*<!--\s*\]\s*-->\s*$/;
+        }
+        elsif ( m/^\s*<!--\s*collate:(js|css)\s*\[\s*-->\s*$/i ) {
+            $rewrite = 1;
+            my $type = lc $1;
+            if ( $type eq 'js' && $substitute{ js } ) {
+                push @output, qq!<script type="text/javascript" src="$substitute{js}"></script>\n!;
+            }
+            elsif ( $substitute{ css } ) {
+                push @output, qq!<link rel="stylesheet" href="$substitute{css}" />\n!;
+            }
+        }
+        else {
+            push @output, $_;
+        }
+    }
+
+    return ref $input eq 'ARRAY' ? @output : join "\n", @output;
 }
 
 1;
