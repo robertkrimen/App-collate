@@ -159,11 +159,20 @@ sub write {
         $_->write for $self->all;
     }
     else {
+        my $compressor = App::collate::Compressor->from( $options{ compressed } );
+        my @collapse = @{ $options{ collapse } || [] };
+
         my %sifted = $self->sifted;
 
-        my $compressor = App::collate::Compressor->from( $options{ compressed } );
-
-        for my $item (@{ $sifted{ attachment } }) {
+ITEM:   for my $item (@{ $sifted{ attachment } }) {
+            for ( @collapse ) {
+                if ( -1 != index $item->path, "$_/" ) {
+                    my $target = $self->into->file( substr $item->path, length $_ );
+                    $target->parent->mkpath;
+                    File::Copy::copy( $item->source, $target );
+                    next ITEM;
+                }
+            }
             $item->write;
         }
 
