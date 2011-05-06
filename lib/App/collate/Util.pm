@@ -27,7 +27,7 @@ sub expand_path ($;$) {
 
     my $path1 = "$path0";
 
-    if ( $path1 =~ m{^(?:/|\./)} ) {
+    if ( $path1 =~ m{^(?:/)} ) {
     }
     elsif ( $path1 =~ s{^~/}{/} ) {
         $path1 = join '', $ENV{ HOME }, $path1;

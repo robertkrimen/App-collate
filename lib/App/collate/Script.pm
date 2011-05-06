@@ -94,18 +94,50 @@ sub declare {
 }
 
 use File::Copy qw/ copy /;
+use File::Temp;
 
 sub write {
     my $self = shift;
     return if $self->load_only;
 
-    my $into = shift;
+    my $into = Path::Class::dir( expand_path( shift, $self->_base ) );
+    my %options = @_;
 
     my $write_manifest = $self->assets->write_manifest( into => $into, repository => $self->repository );
 
-    for my $item ( $write_manifest->all ) {
-        $item->target->parent->mkpath;
-        copy $item->source, $item->target;
+    if ( ! $options{ compressed } ) {
+        for my $item ( $write_manifest->all ) {
+            $item->target->parent->mkpath;
+            copy $item->source, $item->target;
+        }
+    }
+    else {
+        my ( @css, @js );
+
+        for my $item ( $write_manifest->all ) {
+            if ( $item->path =~ m/\.js$/ ) {
+                push @js, join '', ";\n", scalar $item->source->slurp;
+            }
+            elsif ( $item->path =~ m/\.css$/ ) {
+                push @css, join '', "\n", scalar $item->source->slurp;
+            }
+            else {
+                $item->target->parent->mkpath;
+                copy $item->source, $item->target;
+            }
+        }
+
+        if ( @js ) {
+            my $file = $into->file( 'assets0.js' );
+            $file->openw->print( join '', @js );
+            App::collate->yuicompressor( with => 'yuicompressor', input => $file, output => "$file.compressed" );
+        }
+
+        if ( @css ) {
+            my $file = $into->file( 'assets0.css' );
+            $file->openw->print( join '', @css );
+            App::collate->csstidy( input => $file, output => "$file.compressed" );
+        }
     }
 
     return $write_manifest;

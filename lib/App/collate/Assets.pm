@@ -68,7 +68,7 @@ sub write_manifest {
 
     my $repository = $options{ repository };
 
-    die "*** Invalid into ($into): Not a directory or does not exist" unless -d $into;
+    #die "*** Invalid into ($into): Not a directory or does not exist" unless -d $into;
     die "*** Invalid base ($base): Not a directory or does not exist" unless -d $base;
 
     my $manifest = App::collate::Assets::WriteManifest->new( base => $base, into => $into );
