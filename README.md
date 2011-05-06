@@ -1,4 +1,4 @@
 # ---
 
-dist.ini
-compression
+Rebasing
+Compression configuration

@@ -6,7 +6,12 @@ use warnings;
 
 use IPC::System::Simple();
 
+use App::collate::Util;
 require App::collate::Assets;
+
+sub yuicompress {
+    return shift->yuicompressor( @_ );
+}
 
 sub yuicompressor {
     my $self = shift;
@@ -20,24 +25,32 @@ sub yuicompressor_command {
     my $self = shift;
     my %options = @_;
 
-    my ( $with, $java, $input, $output, $type ) = 
-        map { defined $_ ? $_ : '' } @options{ qw/ with java input output type / };
+    my ( $run, $jar, $java, $input, $output, $type ) = 
+        map { defined $_ ? $_ : '' } @options{ qw/ run jar java input output type / };
 
-    die "*** Missing yuicompress or yuicompress.jar" unless length $with;
-    my $jar = $with =~ m/\.jar$/;
-    die "*** Missing java for yuicompress ($with)" if $jar && ! length $java;
-    die "*** Missing input file" unless length $input;
-    die "*** Missing output file" unless length $output;
+    die "*** Missing input file" if empty $input;
+    die "*** Missing output file" if empty $output;
+
+    $java = 'java' if empty $java;
 
     my @command;
-    if ( $jar ) { push @command, "$java -jar $with" }
-    else        { push @command, "$with" }
+    if ( $jar ) {
+        push @command, "$java -jar $jar";
+    }
+    else {
+        die "*** Missing yuicompressor or yuicompressor.jar" unless length $run;
+        push @command, "$run";
+    }
 
     push @command, "--type $type" if length $type;
     push @command, "-o $output";
     push @command, "$input";
 
     return join ' ', @command;
+}
+
+sub closure_compile {
+    return shift->closure_compiler( @_ );
 }
 
 sub closure_compiler {
@@ -52,18 +65,22 @@ sub closure_compiler_command {
     my $self = shift;
     my %options = @_;
 
-    my ( $with, $java, $input, $output ) =
-        map { defined $_ ? $_ : '' } @options{ qw/ with java input output / };
+    my ( $run, $jar, $java, $input, $output ) =
+        map { defined $_ ? $_ : '' } @options{ qw/ run jar java input output / };
 
-    die "*** Missing compiler.jar" unless length $with;
-    my $jar = $with =~ m/\.jar$/;
-    die "*** Missing java for compiler.jar ($with)" if $jar && ! length $java;
-    die "*** Missing input file" unless length $input;
-    die "*** Missing output file" unless length $output;
+    die "*** Missing input file" if empty $input;
+    die "*** Missing output file" if empty $output;
+
+    $java = 'java' if empty $java;
 
     my @command;
-    if ( $jar ) { push @command, "$java -jar $with" }
-    else        { push @command, "$with" }
+    if ( $jar ) {
+        push @command, "$java -jar $jar";
+    }
+    else {
+        die "*** Missing closure or compiler.jar (closure compiler)" unless length $run;
+        push @command, "$run";
+    }
 
     push @command, "--js $input";
     push @command, "--js_output_file $output";

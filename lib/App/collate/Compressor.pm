@@ -7,25 +7,133 @@ use App::collate::Util;
 
 use Any::Moose;
 
+has [qw/ js css /] => qw/ is rw /;
+
+sub resolve_cfg {
+    my $class = shift;
+    my $cfg = shift;
+
+    my $cfg_result;
+
+    if ( ref $cfg eq 'HASH' ) {
+        my $method = $cfg->{ method };
+        die "*** Missing compression method in $cfg" if empty $method;
+        $method = lc $method;
+
+        if ( $method eq 'yuicompressor' ) {
+            $cfg_result = $class->resolve_yuicompressor( $cfg );
+        }
+        elsif ( $method =~ m/^closure(?:[_-]?compiler)?$/ ) {
+            $cfg_result = $class->resolve_closure_compiler( $cfg );
+        }
+        else {
+            die "*** Invalid compressor method ($method)" 
+        }
+    }
+    elsif ( ref $cfg eq '' ) {
+        if ( $cfg =~ s/^yuicompressor://i || $cfg =~ m/yuicompressor/i ) {
+            $cfg_result = $class->resolve_yuicompressor( $cfg );
+        }
+        elsif ( $cfg =~ s/^closure(?:[_-]?compiler)?://i || $cfg =~ m/(?:compiler\.jar|closure)/i ) {
+            $cfg_result = $class->resolve_closure_compiler( $cfg );
+        }
+        else {
+            die "*** Invalid compressor configuration ($cfg)" 
+        }
+    }
+    else {
+        die "*** Invalid compressor configuration ($cfg)" 
+    }
+
+    return $cfg_result;
+}
+
 sub from {
     my $class = shift;
     my $cfg = shift;
 
     die "*** Missing compressor configuration" unless $cfg;
 
-    my ( $js, $css );
+    my $compressor = $class->new;
+
     if ( ref $cfg eq 'HASH' ) {
-        if ( $cfg->{ via } )    { $js = $css = $cfg }
-        else                    { ( $js, $css ) = @$cfg{qw/ js css /} }
+        for my $type (qw/ js css /) {
+            $compressor->$type( $class->resolve_cfg( $cfg->{ $type } ) );
+        }
+    }
+    elsif ( ref $cfg eq '' ) {
+        if ( $cfg =~ s/^yuicompressor:// || $cfg =~ m/yuicompressor/ ) {
+            $compressor->setup_yuicompressor( $cfg );
+        }
+        elsif ( $cfg =~ s/^closure:// || $cfg =~ m/(?:compiler\.jar|closure)/ ) {
+            $compressor->setup_closure_compiler( $cfg );
+        }
+        else {
+            die "*** Invalid compressor configuration ($cfg)" 
+        }
     }
     else {
         die "*** Invalid compressor configuration ($cfg)" 
     }
 
-    return $class->new( js => $js, css => $css );
+    return $compressor;
 }
 
-has [qw/ js css /] => qw/ is rw /;
+sub resolve_jar_cfg {
+    my $self = shift;
+    my @options;
+
+    if ( @_ % 2 ) {
+        my $value = shift @_;
+        if ( ref $value eq 'HASH' ) {
+            push @options, %$value;
+        }
+        else {
+            $value = '' if empty $value;
+            warn $value;
+            if ( $value =~ m/\.jar$/ ) {
+                push @options, jar => $value;
+            }
+            else {
+                push @options, run => $value;
+            }
+        }
+    }
+
+    return { @options, @_ };
+}
+
+sub resolve_yuicompressor_cfg {
+    my $self = shift;
+
+    return $self->resolve_jar_cfg( @_, method => 'yuicompressor' );
+}
+
+sub resolve_closure_compiler_cfg {
+    my $self = shift;
+
+    return $self->resolve_jar_cfg( @_, method => 'compiler_compiler' );
+}
+
+sub setup_yuicompressor {
+    my $self = shift;
+
+    my $options = $self->resolve_yuicompressor_cfg( @_ );
+
+    my $for = delete $options->{ for };
+    $for = '*' unless defined $for;
+
+    $self->js( $options ) if $for eq '*' || $for eq 'js';
+    $self->css( $options ) if $for eq '*' || $for eq 'css';
+}
+
+sub setup_closure_compiler {
+    my $self = shift;
+
+    my $options = $self->resolve_closure_compiler_cfg( @_ );
+
+    $self->js( $options );
+}
 
 sub compress {
     my $self = shift;
@@ -52,11 +160,16 @@ sub compress {
 
     my $method = $self->$type;
 
-    if ( $method->{via} eq 'yuicompressor' ) {
-        App::collate->yuicompressor( with => 'yuicompressor', input => "$tmp", output => "$file" );
+    die "*** Missing compression method" if empty $method;
+
+    if ( $method->{ method } eq 'yuicompressor' ) {
+        App::collate->yuicompress( %$method, input => "$tmp", output => "$file" );
     }
-    elsif ( $method->{via} eq 'closure' ) {
-        App::collate->closure_compiler( with => 'closure', input => "$tmp", output => "$file" );
+    elsif ( $method->{ method } eq 'closure_compiler' ) {
+        App::collate->closure_compile( %$method, input => "$tmp", output => "$file" );
+    }
+    else {
+        die "*** Invalid compression method ($method)";
     }
 
     return $file;

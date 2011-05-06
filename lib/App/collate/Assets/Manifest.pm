@@ -153,13 +153,20 @@ sub write {
     my $self = shift;
     my %options = @_;
 
-    my $into = $self->into;
+    my $compressed = $options{ compressed };
 
-    if ( ! $options{ compressed } ) {
+    if ( ! $compressed ) {
         $_->write for $self->all;
     }
     else {
-        my $compressor = App::collate::Compressor->from( $options{ compressed } );
+        my $compressor = $options{ compressor };
+        my $compress = $options{ compress };
+        $compress = '*' if empty $compress;
+
+        if ( ! blessed $compressor ) {
+            $compressor = App::collate::Compressor->from( $compressor );
+        }
+
         my @detach = @{ $options{ detach } || [] };
 
         my %sifted = $self->sifted;
@@ -177,8 +184,20 @@ sub write {
             $item->write;
         }
 
-        my $js_file = $compressor->compress( type => 'js', list => $sifted{ js }, into => $into, name => $options{ name } );
-        my $css_file = $compressor->compress( type => 'css', list => $sifted{ css }, into => $into, name => $options{ name } );
+        my ( $js_file, $css_file );
+        if ( $compress eq '*' || $compress eq 'js' ) {
+            $js_file = $compressor->compress( type => 'js', list => $sifted{ js }, into => $self->into, name => $options{ name } );
+        }
+        else {
+            $_->write for @{ $sifted{ js } };
+        }
+
+        if ( $compress eq '*' || $compress eq 'css' ) {
+            $css_file = $compressor->compress( type => 'css', list => $sifted{ css }, into => $self->into, name => $options{ name } );
+        }
+        else {
+            $_->write for @{ $sifted{ css } };
+        }
 
         if ( $options{ rewrite } ) {
 
