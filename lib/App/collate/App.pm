@@ -8,12 +8,14 @@ use Getopt::Usaginator <<_END_;
     Usage: collate [--file <file>]
 
 _END_
-use Path::Class();
-
-use Any::Moose;
+use Path::Class;
+use File::HomeDir();
 
 use App::collate::Repository;
 use App::collate::Script;
+use App::collate::Util;
+
+use Any::Moose;
 
 sub run {
     my $self = shift;
@@ -31,12 +33,21 @@ sub run {
 
     my $repository = App::collate::Repository->new;
 
-    if ( $ENV{ COLLATE_REPOSITORY } ) {
-        my $script = App::collate::Script->new( file => Path::Class::file( $ENV{ COLLATE_REPOSITORY } ), load_only => 1, repository => $repository );
+    my $collaterc;
+    {
+        if ( ! empty( $collaterc = $ENV{ COLLATERC } ) ) {
+        }
+        elsif ( defined( my $home = File::HomeDir->my_home ) ) {
+            $collaterc = file $home, '.collaterc';
+        }
+    }
+
+    if ( ! empty $collaterc && $collaterc ne '-' && -f $collaterc ) {
+        my $script = App::collate::Script->new( file => file( $collaterc ), repository => $repository );
         $script->_run;
     }
 
-    my $script = App::collate::Script->new( file => Path::Class::file( $file ), repository => $repository );
+    my $script = App::collate::Script->new( file => file( $file ), repository => $repository );
     $script->_run;
 }
 

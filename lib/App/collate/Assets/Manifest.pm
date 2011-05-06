@@ -164,7 +164,8 @@ sub write {
 
         my %sifted = $self->sifted;
 
-ITEM:   for my $item (@{ $sifted{ attachment } }) {
+        ITEM:
+        for my $item (@{ $sifted{ attachment } }) {
             for ( @detach ) {
                 if ( -1 != index $item->path, "$_/" ) {
                     my $target = $self->into->file( substr $item->path, length $_ );
