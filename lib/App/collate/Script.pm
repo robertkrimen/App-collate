@@ -30,6 +30,13 @@ sub _build__base {
     return $self->file->parent;
 }
 
+sub rebase {
+    my $self = shift;
+    my $path = shift;
+    $self->_base( expand_path( $path, $self->_base ) );
+    $self->assets->base( $self->_base );
+}
+
 has load_only => qw/ is ro isa Bool /;
 
 has _name => qw/ is rw isa Str predicate has_name /;
@@ -51,7 +58,7 @@ sub name {
 has assets => qw/ is rw isa App::collate::Assets lazy_build 1 predicate has_assets /;
 sub _build_assets {
     my $self = shift;
-    my $assets = App::collate::Assets->new( base => $self->_base.'' );
+    my $assets = App::collate::Assets->new( base => $self->_base );
     if ( $self->has_name ) {
         $self->repository->assets( $self->_name => $assets );
     }

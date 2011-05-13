@@ -84,6 +84,7 @@ sub closure_compiler_command {
 
     push @command, "--js $input";
     push @command, "--js_output_file $output";
+    push @command, "--third_party";
 
     return join ' ', @command;
 }

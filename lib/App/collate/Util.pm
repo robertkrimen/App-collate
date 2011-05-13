@@ -10,6 +10,10 @@ use Digest::SHA qw/ sha1_hex /;
 
 pkg->export(qw/ each_trimmed_line expand_path asset_file empty join_slash_path /);
 
+sub empty ($) {
+    return not defined $_[0] && length $_[0];
+}
+
 sub asset_file {
     my %options = @_;
 
@@ -40,6 +44,7 @@ sub expand_path ($;$) {
     my $path0 = shift;
     my $base = shift;
 
+    $path0 = '' if empty $path0;
     my $path1 = "$path0";
 
     if ( $path1 =~ m{^(?:/)} ) {
@@ -61,10 +66,6 @@ sub join_slash_path {
     $path =~ s/\/+/\//;
     $path =~ s/^\.\///;
     return $path;
-}
-
-sub empty ($) {
-    return not defined $_[0] && length $_[0];
 }
 
 sub rewrite_content {
