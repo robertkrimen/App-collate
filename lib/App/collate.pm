@@ -103,3 +103,120 @@ sub assets {
 }
 
 1;
+
+__END__
+
+=head1 SYNOPSIS
+
+TODO Talk about include, attach, and import
+
+1. Create a collection of common assets (jQuery, underscore, Zero Clipboard, etc.)  and (for this example) put them in ~/assets/:
+
+Declaring an asset bundle does not automatically include it, but does make it available for import
+
+    #!/usr/bin/env perl
+
+    use strict;
+    use warnings;
+
+    sub {
+        my ( $collate ) = @_;
+
+        $collate->declare( 'underscore' =>
+            include => <<_END_,
+    underscore.js
+    _END_
+        );
+        
+        $collate->declare( 'jquery' =>
+            include => <<_END_,
+    jquery.js
+    _END_
+        );
+        
+        $collate->declare( 'jquery-ui' =>
+            import => <<_END_,
+    jquery
+    _END_
+            include => <<_END_,
+    jquery-ui/jquery-ui.js
+    jquery-ui/base/jquery-ui.css
+    _END_
+            attach => <<_END_,
+    jquery-ui/base
+    _END_
+        );
+
+
+        $collate->declare( 'zeroclipboard' =>
+            include => <<_END_,
+    zeroclipboard/ZeroClipboard.js
+    _END_
+            attach => <<_END_,
+    zeroclipboard/ZeroClipboard.swf
+    _END_
+        );
+
+        $collate->declare( 'tipsy' =>
+            import => <<_END_,
+    jquery
+    _END_
+            include => <<_END_,
+    tipsy/jquery.tipsy.js
+    tipsy/tipsy.css
+    _END_
+        );
+    };
+
+
+2. Create ~/.collaterc:
+
+    #!/usr/bin/env perl 
+
+    use strict;
+    use warnings;
+
+    sub {
+        my ( $collate ) = @_;
+
+        # Use the 'yuicompressor' command to compress with YUI Compressor
+        $collate->setup_yuicompressor( 'yuicompressor' );
+
+        $assets->load( "~/assets/collate.assets" );
+
+    };
+
+3. Create app.assets in your (web) application directory:
+
+This file will take imported assets and write them out to the specified directory, optionally compressing them
+
+    #!/usr/bin/env perl
+
+    use strict;
+    use warnings;
+
+    sub {
+        my ( $collate ) = @_;
+
+        $collate->import( <<_END_ );
+jquery
+jquery-ui
+_END_
+
+        $collate->include( <<_END_ );
+    assets/app.js
+    _END_
+
+        $collate->write( 'assets' );
+
+    }
+
+4. Run the C<collate> command from the shell in the same directory as C<app.assets>:
+
+    $ collate
+
+You should end up with a file hiearchy that looks something like this:
+
+    assets/jquery.js
+    assets/jquery-ui/jquery-ui.js
+    assets/app.js
