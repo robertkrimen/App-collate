@@ -1,0 +1,133 @@
+#!/usr/bin/env perl
+
+package App::collate::cllte;
+
+use Getopt::Usaginator <<_END_;
+    
+    Usage: cllte [--file <file>]
+
+_END_
+use Path::Class;
+use File::HomeDir();
+use File::Copy qw/ copy /;
+
+use App::collate::Util;
+
+use App::collate::Moose;
+
+sub run {
+    my $self = shift;
+    return $self->new->run( @_ ) unless ref $self;
+    my @arguments = @_;
+
+    my $file = 'cllte.assets';
+    Getopt::Usaginator->parse( \@arguments,
+        'file=s' => \$file,
+    );
+
+    if ( ! -f $file ) {
+        usage "*** Invalid file ($file): Not a file or does not exist";
+    }
+
+    my $collaterc;
+    {
+        if ( ! empty( $collaterc = $ENV{ CLLTERC } ) ) {
+        }
+        elsif ( defined( my $home = File::HomeDir->my_home ) ) {
+            $collaterc = file $home, '.cllterc';
+        }
+    }
+
+    my @run;
+    if ( ! empty $collaterc && $collaterc ne '-' && -f $collaterc ) {
+        push @run, $collaterc;
+    }
+    push @run, $file;
+
+    for my $file ( @run ) {
+        $file = file $file;
+        $self->base( $file->parent );
+        my $code = do "$file";
+        die "*** Invalid file ($file): Unable to read/execute: $!" if $!;
+        die "*** Invalid file ($file): Unable to execute: $@" if $@;
+        die "*** Invalid return value ($code) from file ($file): Should be a subroutine (CODE reference)" unless ref $code eq 'CODE';
+        $code->( $self );
+        delete $self->{ base };
+    }
+}
+
+has_dir base => qw/ is rw /;
+sub rebase {
+    my $self = shift;
+    my $path = shift;
+    $self->base( expand_path( $path, $self->base ) );
+}
+
+has repository => qw/ is ro lazy_build 1 /;
+sub _build_repository {
+    return {};
+}
+
+sub declare {
+    my $self = shift;
+    my $name = shift;
+    my $path = shift;
+
+    die "*** Missing name" unless not empty $name;
+    die "*** Missing path" unless not empty $path;
+    my $source = $self->base->file( $path );
+    die "*** Invalid path ($path): File/directory \"$source\" does not exist" unless -e $source;
+
+    $self->repository->{ $name } = {
+        path => $path,
+        source => $source,
+    };
+}
+
+sub write {
+    my $self = shift;
+    my $into = shift;
+    my $manifest = shift;
+    my %options = @_;
+
+    die "*** Missing into" unless not empty $into;
+    $into = dir $into;
+    die "*** Missing manifest" unless $manifest;
+    die "*** Invalid manifest ($manifest)" unless ref $manifest eq 'ARRAY';
+
+    for my $name ( @$manifest ) {
+        $name = '' if empty $name;
+        my $item = $self->repository->{ $name };
+        die "*** Missing item ($name) in repository" unless $item;
+
+        my ( $path, $source ) = @$item{qw/ path source /};
+
+        if ( -f $source ) {
+            die "*** Invalid source ($source): Not a directory";
+        }
+        else {
+            $source = dir $source;
+            $source->recurse( callback => sub {
+                my $file = shift;
+                return if $file =~ m/(^|\/)\./;
+                return if $file =~ m/\.pyc$/;
+                if ( -f $file ) {
+                    my $path = substr "$file", 1 + length $source;
+                    my $into_file = $into->file( $path );
+                    warn "link $file => $into_file\n";
+                }
+            } );
+
+        }
+    }
+}
+
+# declare( gaeutil => pyl )
+
+package main;
+
+use Modern::Perl;
+
+App::collate::cllte->run( @ARGV );
+
+1;

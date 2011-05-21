@@ -79,6 +79,7 @@ sub _run {
     my $self = shift;
 
     my $file = $self->file;
+    # TODO "do" in an isolated package
     my $code = do "$file";
     die "*** Invalid file ($file): Unable to read/execute: $!" if $!;
     die "*** Invalid file ($file): Unable to execute: $@" if $@;
