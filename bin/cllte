@@ -45,15 +45,9 @@ sub run {
     push @run, $file;
 
     for my $file ( @run ) {
-        $file = file $file;
-        $self->base( $file->parent );
-        my $code = do "$file";
-        die "*** Invalid file ($file): Unable to read/execute: $!" if $!;
-        die "*** Invalid file ($file): Unable to execute: $@" if $@;
-        die "*** Invalid return value ($code) from file ($file): Should be a subroutine (CODE reference)" unless ref $code eq 'CODE';
-        $code->( $self );
-        delete $self->{ base };
+        $self->_run( $file );
     }
+
 }
 
 has_dir base => qw/ is rw /;
@@ -97,6 +91,7 @@ sub write {
 
     for my $name ( @$manifest ) {
         $name = '' if empty $name;
+        warn "write $name\n";
         my $item = $self->repository->{ $name };
         die "*** Missing item ($name) in repository" unless $item;
 
@@ -114,12 +109,43 @@ sub write {
                 if ( -f $file ) {
                     my $path = substr "$file", 1 + length $source;
                     my $into_file = $into->file( $path );
+                    $into_file->parent->mkpath unless -d $into_file->parent;
+                    # TODO If inode is not the same...
                     warn "link $file => $into_file\n";
+                    if ( ! -f $into_file ) {
+                        link $file, $into_file or die $!;
+                    }
                 }
             } );
 
         }
     }
+}
+
+sub _run {
+    my $self = shift;
+    my $file = shift;
+
+    die "*** Missing file" if empty $file;
+    $file = file $file;
+    my $base = $self->base;
+    $self->base( $file->parent );
+    my $code = do "$file";
+    die "*** Invalid file ($file): Unable to read/execute: $!" if $!;
+    die "*** Invalid file ($file): Unable to execute: $@" if $@;
+    die "*** Invalid return value ($code) from file ($file): Should be a subroutine (CODE reference)" unless ref $code eq 'CODE';
+    $code->( $self );
+    if ( defined $base ) {
+        $self->base( $base );
+    }
+}
+
+sub load {
+    my $self = shift;
+    my $file = shift;
+
+    $file = expand_path( $file, $self->base );
+    $self->_run( $file );
 }
 
 # declare( gaeutil => pyl )
